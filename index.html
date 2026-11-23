@@ -1,0 +1,623 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agenda Barber Pro</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#10131b;color:white;font-family:Arial,sans-serif}
+header{background:#171c28;padding:22px;text-align:center;border-bottom:2px solid #d5a33b}
+h1{color:#e6b84e;margin:0}
+main{max-width:700px;margin:25px auto;padding:15px}
+.card{background:#1c2331;padding:20px;border-radius:14px;margin-bottom:18px}
+input,select,textarea,button{width:100%;padding:13px;margin:7px 0;border-radius:8px;border:0;font-size:16px}
+input,select,textarea{background:white;color:#171717}
+button{background:#d5a33b;color:#171717;font-weight:bold;cursor:pointer}
+.secondary{background:#394357;color:white}
+.item{padding:12px;margin:8px 0;background:#293244;border-radius:8px}
+p{color:#c8ced8;line-height:1.5}
+small{color:#c8ced8}
+.hidden{display:none}
+h2{margin-top:0}
+</style>
+</head>
+<body>
+<header>
+<h1>✂️ Agenda Barber Pro</h1>
+<p>Seu estilo, seu horário!</p>
+</header>
+
+<main>
+<section class="card">
+<h2>Encontre seu estabelecimento</h2>
+<div id="establishments">Carregando estabelecimentos...</div>
+</section>
+
+<section class="card hidden" id="bookingArea">
+<h2>Solicitar agendamento</h2>
+<p id="bookingShop"></p>
+<form id="bookingForm">
+<input id="customerName" placeholder="Seu nome" required>
+<input id="customerPhone" placeholder="Seu telefone" required>
+<select id="bookingService" required>
+<option value="">Escolha um serviço</option>
+</select>
+<label>Data</label>
+<input id="bookingDate" type="date" required>
+<label>Horário</label>
+<select id="bookingTime" required>
+<option value="">Escolha uma data primeiro</option>
+</select>
+<button type="submit">Solicitar agendamento</button>
+<button type="button" class="secondary" onclick="closeBooking()">Voltar</button>
+</form>
+<p id="bookingMessage"></p>
+</section>
+
+<section class="card" id="professionalArea">
+<h2>Área do profissional</h2>
+<div id="authForms">
+<form id="signupForm">
+<h3>Criar conta</h3>
+<input id="signupEmail" type="email" placeholder="Seu e-mail" required>
+<input id="signupPassword" type="password" placeholder="Crie uma senha (mínimo 6 caracteres)" minlength="6" required>
+<button type="submit">Cadastrar</button>
+</form>
+<hr>
+<form id="loginForm">
+<h3>Entrar na minha conta</h3>
+<input id="loginEmail" type="email" placeholder="Seu e-mail" required>
+<input id="loginPassword" type="password" placeholder="Sua senha" required>
+<button type="submit">Entrar</button>
+</form>
+</div>
+
+<div id="dashboard" class="hidden">
+<p id="welcome"></p>
+<button class="secondary" onclick="logout()">Sair da conta</button>
+
+<div id="establishmentFormArea">
+<h3>Cadastrar estabelecimento</h3>
+<form id="establishmentForm">
+<input id="shopName" placeholder="Nome do estabelecimento" required>
+<input id="shopPhone" placeholder="Telefone" required>
+<input id="shopAddress" placeholder="Endereço">
+<textarea id="shopDescription" placeholder="Descrição do estabelecimento"></textarea>
+<button type="submit">Salvar estabelecimento</button>
+</form>
+</div>
+
+<div id="managementArea" class="hidden">
+<h3>Meu estabelecimento</h3>
+<p id="shopInfo"></p>
+
+<h3>Cadastrar serviço</h3>
+<form id="serviceForm">
+<input id="serviceName" placeholder="Nome do serviço" required>
+<input id="serviceDescription" placeholder="Descrição">
+<input id="servicePrice" type="number" min="0" step="0.01" placeholder="Preço (R$)" required>
+<input id="serviceDuration" type="number" min="5" step="5" placeholder="Duração em minutos" required>
+<button type="submit">Salvar serviço</button>
+</form>
+<div id="servicesList"></div>
+
+<h3>Configurar horários</h3>
+<form id="hoursForm">
+<label>Dia da semana</label>
+<select id="hoursDay">
+<option value="0">Domingo</option>
+<option value="1">Segunda-feira</option>
+<option value="2">Terça-feira</option>
+<option value="3">Quarta-feira</option>
+<option value="4">Quinta-feira</option>
+<option value="5">Sexta-feira</option>
+<option value="6">Sábado</option>
+</select>
+<label>Abertura</label>
+<input id="openingTime" type="time">
+<label>Fechamento</label>
+<input id="closingTime" type="time">
+<label><input id="closedDay" type="checkbox" style="width:auto"> Fechado neste dia</label>
+<button type="submit">Salvar horário</button>
+</form>
+<div id="hoursList"></div>
+
+<h3>Agendamentos recebidos</h3>
+<div id="appointmentsList">Carregando...</div>
+</div>
+</div>
+<p id="systemMessage"></p>
+</section>
+</main>
+
+<script>
+const SUPABASE_URL = "https://dqgteucjwkupcfwivrpy.supabase.co";
+const SUPABASE_KEY = "sb_publishable_lFPXi7F5KQRS__qRBNwc_Q_s_Fbipt3";
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let currentUser = null;
+let currentShop = null;
+let selectedShop = null;
+
+const $ = id => document.getElementById(id);
+
+function showMessage(text) {
+  $("systemMessage").textContent = text;
+}
+
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, c => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[c]));
+}
+
+function localDateString() {
+  const now = new Date();
+  return now.getFullYear() + "-" +
+    String(now.getMonth()+1).padStart(2,"0") + "-" +
+    String(now.getDate()).padStart(2,"0");
+}
+
+async function loadEstablishments() {
+  const {data, error} = await db.from("establishments")
+    .select("id,name,address,description")
+    .eq("is_active", true)
+    .order("name");
+
+  if(error) {
+    $("establishments").textContent = "Não foi possível carregar os estabelecimentos.";
+    return;
+  }
+
+  if(!data || !data.length) {
+    $("establishments").textContent = "Nenhum estabelecimento cadastrado ainda.";
+    return;
+  }
+
+  $("establishments").innerHTML = data.map(shop => `
+    <div class="item">
+      <h3>${escapeHTML(shop.name)}</h3>
+      <p>${escapeHTML(shop.description || "")}</p>
+      <small>${escapeHTML(shop.address || "")}</small>
+      <button onclick="openBooking('${shop.id}')">Ver serviços e agendar</button>
+    </div>
+  `).join("");
+}
+
+async function openBooking(shopId) {
+  const {data: shop, error} = await db.from("establishments")
+    .select("*").eq("id", shopId).eq("is_active", true).single();
+
+  if(error || !shop) {
+    alert("Não foi possível abrir este estabelecimento.");
+    return;
+  }
+
+  selectedShop = shop;
+  $("bookingArea").classList.remove("hidden");
+  $("bookingShop").textContent = shop.name;
+  $("bookingMessage").textContent = "";
+
+  const {data: services, error: serviceError} = await db.from("services")
+    .select("*").eq("establishment_id", shopId).eq("is_active", true);
+
+  if(serviceError) {
+    alert("Não foi possível carregar os serviços.");
+    return;
+  }
+
+  $("bookingService").innerHTML =
+    '<option value="">Escolha um serviço</option>' +
+    (services || []).map(s =>
+      `<option value="${s.id}">${escapeHTML(s.name)} - R$ ${Number(s.price).toFixed(2).replace(".",",")}</option>`
+    ).join("");
+
+  $("bookingDate").min = localDateString();
+  $("bookingDate").value = "";
+  $("bookingTime").innerHTML = '<option value="">Escolha uma data primeiro</option>';
+  $("bookingArea").scrollIntoView({behavior:"smooth"});
+}
+
+function closeBooking() {
+  $("bookingArea").classList.add("hidden");
+}
+
+async function loadBookingTimes() {
+  $("bookingTime").innerHTML = '<option value="">Carregando horários...</option>';
+
+  if(!selectedShop || !$("bookingDate").value || !$("bookingService").value) {
+    $("bookingTime").innerHTML = '<option value="">Escolha serviço e data</option>';
+    return;
+  }
+
+  const date = $("bookingDate").value;
+  const day = new Date(date + "T12:00:00").getDay();
+
+  if(date < localDateString()) {
+    $("bookingTime").innerHTML = '<option value="">Escolha uma data futura</option>';
+    return;
+  }
+
+  const {data: hours, error} = await db.from("business_hours")
+    .select("*")
+    .eq("establishment_id", selectedShop.id)
+    .eq("day_of_week", day)
+    .maybeSingle();
+
+  if(error || !hours || hours.is_closed) {
+    $("bookingTime").innerHTML = '<option value="">Estabelecimento fechado neste dia</option>';
+    return;
+  }
+
+  const {data: service, error: serviceError} = await db.from("services")
+    .select("duration_minutes")
+    .eq("id", $("bookingService").value)
+    .maybeSingle();
+
+  if(serviceError || !service) {
+    $("bookingTime").innerHTML = '<option value="">Serviço indisponível</option>';
+    return;
+  }
+
+  const duration = Number(service.duration_minutes || 30);
+  const [startH, startM] = hours.opening_time.split(":").map(Number);
+  const [endH, endM] = hours.closing_time.split(":").map(Number);
+
+  let minutes = startH * 60 + startM;
+  const endMinutes = endH * 60 + endM;
+
+  const now = new Date();
+  const today = localDateString();
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+  let options = '<option value="">Escolha um horário</option>';
+
+  while(minutes + duration <= endMinutes) {
+    const hh = String(Math.floor(minutes/60)).padStart(2,"0");
+    const mm = String(minutes%60).padStart(2,"0");
+
+    if(date !== today || minutes > currentMinutes) {
+      options += `<option value="${hh}:${mm}">${hh}:${mm}</option>`;
+    }
+
+    minutes += 30;
+  }
+
+  if(options === '<option value="">Escolha um horário</option>') {
+    options = '<option value="">Não há mais horários disponíveis neste dia</option>';
+  }
+
+  $("bookingTime").innerHTML = options;
+}
+
+$("bookingDate").addEventListener("change", loadBookingTimes);
+$("bookingService").addEventListener("change", loadBookingTimes);
+
+$("bookingForm").addEventListener("submit", async e => {
+  e.preventDefault();
+
+  if(!selectedShop) return;
+
+  const serviceId = $("bookingService").value;
+  const date = $("bookingDate").value;
+  const time = $("bookingTime").value;
+
+  if(!date || !time) {
+    $("bookingMessage").textContent = "Escolha uma data e um horário.";
+    return;
+  }
+
+  if(date < localDateString()) {
+    $("bookingMessage").textContent = "Não é possível agendar em uma data passada.";
+    return;
+  }
+
+  const {data: service, error: serviceError} = await db.from("services")
+    .select("*").eq("id", serviceId).single();
+
+  if(serviceError || !service) {
+    $("bookingMessage").textContent = "Não foi possível localizar o serviço.";
+    return;
+  }
+
+  const start = new Date(`${date}T${time}:00`);
+  const end = new Date(start.getTime() + Number(service.duration_minutes)*60000);
+
+  if(start <= new Date()) {
+    $("bookingMessage").textContent = "Escolha um horário futuro.";
+    await loadBookingTimes();
+    return;
+  }
+
+  const {error} = await db.from("appointments").insert({
+    establishment_id: selectedShop.id,
+    service_id: service.id,
+    customer_name: $("customerName").value.trim(),
+    customer_phone: $("customerPhone").value.trim(),
+    service_name: service.name,
+    service_price: service.price,
+    start_at: start.toISOString(),
+    end_at: end.toISOString(),
+    status: "Pendente"
+  });
+
+  if(error) {
+    $("bookingMessage").textContent =
+      "Não foi possível solicitar o agendamento. Tente novamente.";
+    return;
+  }
+
+  $("bookingMessage").textContent =
+    "Agendamento solicitado com sucesso! Seu pedido está pendente de confirmação. 💙";
+
+  $("bookingForm").reset();
+  $("bookingTime").innerHTML = '<option value="">Escolha uma data primeiro</option>';
+});
+
+$("signupForm").addEventListener("submit", async e => {
+  e.preventDefault();
+
+  const {error} = await db.auth.signUp({
+    email: $("signupEmail").value.trim(),
+    password: $("signupPassword").value,
+    options: {
+      emailRedirectTo: "https://agenda-barber-pro-d.netlify.app"
+    }
+  });
+
+  if(error) showMessage(error.message);
+  else showMessage("Cadastro iniciado! Confira seu e-mail para confirmar a conta.");
+});
+
+$("loginForm").addEventListener("submit", async e => {
+  e.preventDefault();
+
+  const {error} = await db.auth.signInWithPassword({
+    email: $("loginEmail").value.trim(),
+    password: $("loginPassword").value
+  });
+
+  if(error) showMessage(error.message);
+});
+
+async function logout() {
+  await db.auth.signOut();
+  location.reload();
+}
+
+async function loadDashboard() {
+  if(!currentUser) return;
+
+  $("authForms").classList.add("hidden");
+  $("dashboard").classList.remove("hidden");
+  $("welcome").textContent = "Você está conectado à sua conta.";
+
+  const {data: shop, error} = await db.from("establishments")
+    .select("*").eq("owner_id", currentUser.id).maybeSingle();
+
+  if(error) {
+    showMessage("Erro ao carregar estabelecimento: " + error.message);
+    return;
+  }
+
+  if(!shop) {
+    $("establishmentFormArea").classList.remove("hidden");
+    $("managementArea").classList.add("hidden");
+    return;
+  }
+
+  currentShop = shop;
+  $("establishmentFormArea").classList.add("hidden");
+  $("managementArea").classList.remove("hidden");
+  $("shopInfo").textContent = shop.name + " — " + (shop.address || "");
+
+  await loadServices();
+  await loadHours();
+  await loadAppointments();
+}
+
+$("establishmentForm").addEventListener("submit", async e => {
+  e.preventDefault();
+
+  const name = $("shopName").value.trim();
+  const slug = name.toLowerCase().normalize("NFD")
+    .replace(/[\u0300-\u036f]/g,"")
+    .replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+
+  const {data, error} = await db.from("establishments").insert({
+    owner_id: currentUser.id,
+    name,
+    slug: slug + "-" + Math.random().toString(36).slice(2,7),
+    phone: $("shopPhone").value.trim(),
+    address: $("shopAddress").value.trim(),
+    description: $("shopDescription").value.trim(),
+    is_active: true
+  }).select().single();
+
+  if(error) {
+    showMessage("Erro ao salvar: " + error.message);
+    return;
+  }
+
+  currentShop = data;
+  showMessage("Estabelecimento salvo com sucesso!");
+  await loadDashboard();
+});
+
+async function loadServices() {
+  const {data, error} = await db.from("services")
+    .select("*").eq("establishment_id", currentShop.id).order("name");
+
+  if(error) {
+    $("servicesList").textContent = "Erro ao carregar serviços.";
+    return;
+  }
+
+  $("servicesList").innerHTML = (data || []).map(s => `
+    <div class="item">
+      ${escapeHTML(s.name)} — R$ ${Number(s.price).toFixed(2).replace(".",",")}
+      <br><small>${Number(s.duration_minutes)} minutos</small>
+    </div>
+  `).join("") || "<p>Nenhum serviço cadastrado.</p>";
+}
+
+$("serviceForm").addEventListener("submit", async e => {
+  e.preventDefault();
+
+  const {error} = await db.from("services").insert({
+    establishment_id: currentShop.id,
+    name: $("serviceName").value.trim(),
+    description: $("serviceDescription").value.trim(),
+    price: Number($("servicePrice").value),
+    duration_minutes: Number($("serviceDuration").value),
+    is_active: true
+  });
+
+  if(error) {
+    showMessage("Erro ao salvar serviço: " + error.message);
+    return;
+  }
+
+  $("serviceForm").reset();
+  showMessage("Serviço salvo com sucesso!");
+  await loadServices();
+});
+
+async function loadHours() {
+  const {data, error} = await db.from("business_hours")
+    .select("*").eq("establishment_id", currentShop.id).order("day_of_week");
+
+  if(error) {
+    $("hoursList").textContent = "Erro ao carregar horários.";
+    return;
+  }
+
+  const days = ["Domingo","Segunda-feira","Terça-feira","Quarta-feira","Quinta-feira","Sexta-feira","Sábado"];
+
+  $("hoursList").innerHTML = (data || []).map(h => `
+    <div class="item">
+      ${days[h.day_of_week]}:
+      ${h.is_closed ? "Fechado" : escapeHTML(h.opening_time) + " às " + escapeHTML(h.closing_time)}
+    </div>
+  `).join("") || "<p>Nenhum horário configurado.</p>";
+}
+
+$("hoursForm").addEventListener("submit", async e => {
+  e.preventDefault();
+
+  const day = Number($("hoursDay").value);
+  const closed = $("closedDay").checked;
+  const opening = $("openingTime").value;
+  const closing = $("closingTime").value;
+
+  if(!closed && (!opening || !closing || opening >= closing)) {
+    showMessage("Informe horários válidos de abertura e fechamento.");
+    return;
+  }
+
+  const {data: existing, error: findError} = await db.from("business_hours")
+    .select("id")
+    .eq("establishment_id", currentShop.id)
+    .eq("day_of_week", day)
+    .maybeSingle();
+
+  if(findError) {
+    showMessage("Erro ao consultar horário: " + findError.message);
+    return;
+  }
+
+  const values = {
+    establishment_id: currentShop.id,
+    day_of_week: day,
+    opening_time: closed ? null : opening,
+    closing_time: closed ? null : closing,
+    is_closed: closed
+  };
+
+  let result;
+
+  if(existing) {
+    result = await db.from("business_hours").update(values).eq("id", existing.id);
+  } else {
+    result = await db.from("business_hours").insert(values);
+  }
+
+  if(result.error) {
+    showMessage("Erro ao salvar horário: " + result.error.message);
+    return;
+  }
+
+  showMessage("Horário salvo com sucesso!");
+  await loadHours();
+});
+
+async function loadAppointments() {
+  const {data, error} = await db.from("appointments")
+    .select("*")
+    .eq("establishment_id", currentShop.id)
+    .order("start_at", {ascending:true});
+
+  if(error) {
+    $("appointmentsList").textContent =
+      "Não foi possível carregar os agendamentos. Verifique as permissões da tabela.";
+    return;
+  }
+
+  if(!data || !data.length) {
+    $("appointmentsList").textContent = "Nenhum agendamento recebido ainda.";
+    return;
+  }
+
+  $("appointmentsList").innerHTML = data.map(a => {
+    const date = new Date(a.start_at).toLocaleString("pt-BR");
+
+    return `<div class="item">
+      <b>${escapeHTML(a.customer_name)}</b><br>
+      ${escapeHTML(a.customer_phone)}<br>
+      ${escapeHTML(a.service_name)} — R$ ${Number(a.service_price).toFixed(2).replace(".",",")}<br>
+      ${date}<br>
+      Status: ${escapeHTML(a.status)}
+      ${a.status === "Pendente" ? `
+        <button onclick="updateAppointment('${a.id}','Confirmado')">Confirmar</button>
+        <button class="secondary" onclick="updateAppointment('${a.id}','Cancelado')">Cancelar</button>
+      ` : ""}
+    </div>`;
+  }).join("");
+}
+
+async function updateAppointment(id, status) {
+  const {error} = await db.from("appointments")
+    .update({status})
+    .eq("id", id)
+    .eq("establishment_id", currentShop.id);
+
+  if(error) {
+    showMessage("Não foi possível atualizar o agendamento: " + error.message);
+    return;
+  }
+
+  showMessage("Agendamento " + status.toLowerCase() + "!");
+  await loadAppointments();
+}
+
+db.auth.onAuthStateChange((_event, session) => {
+  currentUser = session?.user || null;
+
+  if(currentUser) {
+    loadDashboard();
+  } else {
+    currentShop = null;
+    $("authForms").classList.remove("hidden");
+    $("dashboard").classList.add("hidden");
+  }
+});
+
+$("bookingDate").min = localDateString();
+loadEstablishments();
+</script>
+</body>
+  </html>
+  
