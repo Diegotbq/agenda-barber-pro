@@ -105,3 +105,5 @@ input:focus,select:focus{border-color:#d8ad63!important;box-shadow:0 0 0 3px #d8
   .main-content{background:#10100f}
   .topbar{border-bottom-color:#302d26}
 }
+
+.team-role{display:inline-flex;padding:5px 9px;border:1px solid #6e542b;border-radius:20px;background:#302516;color:#e6c27c;font-size:10px;font-weight:700}.team-active{display:inline-flex;align-items:center;gap:6px;color:#a9c7a8;font-size:10px}.team-active i{width:6px;height:6px;border-radius:50%;background:#9ac58e}.team-invite-note{display:flex;gap:12px;align-items:flex-start;margin-top:16px;padding:16px;border:1px solid #514025;border-radius:10px;background:#211b12}.team-note-icon{display:grid;place-items:center;flex:none;width:30px;height:30px;border-radius:8px;background:#3a2c17;color:#e4bd70}.team-invite-note strong{display:block;color:#f0d69f;font-size:11px}.team-invite-note p{margin:5px 0 0;color:#b7aa94;font-size:10px;line-height:1.6}
