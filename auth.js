@@ -114,6 +114,7 @@
     shell.classList.remove('auth-locked');
     window.agendaProSupabase = client;
     window.agendaProSession = session;
+    window.dispatchEvent(new CustomEvent('agenda-pro-authenticated'));
     // The operational dashboard remains local-demo data until its tables are migrated.
     if (!document.getElementById('dataModeNotice')) {
       const notice = document.createElement('div');
