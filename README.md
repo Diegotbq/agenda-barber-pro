@@ -10,6 +10,11 @@ Sistema de gestão e agendamento para barbearias. Esta reconstrução está send
 - Interface responsiva para desktop e celular.
 - Persistência local de demonstração via `localStorage`.
 
+## Identidade visual
+- Tema oficial escolhido: **preto e dourado** — visual profissional, elegante e premium.
+- Fundo escuro, superfícies em carvão e detalhes dourados para ações, navegação e destaques.
+- Interface responsiva com contraste adaptado para uso em desktop e celular.
+
 ## Estrutura
 - `index.html`: estrutura da aplicação.
 - `styles.css`: identidade visual e responsividade.
