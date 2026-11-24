@@ -13,17 +13,19 @@
 1. A barbearia cria sua conta e informa os dados do estabelecimento.
 2. O sistema cria uma assinatura em avaliação, registrando início e fim do teste no servidor.
 3. Durante os 7 dias, a conta tem acesso aos recursos do plano.
-4. Antes do fim do teste, a plataforma informa a data de início da cobrança e solicita a forma de pagamento.
-5. Ao terminar o teste, a assinatura passa para ativa somente após confirmação válida do provedor de pagamento.
-6. Em caso de pagamento recusado ou assinatura cancelada/expirada, a plataforma aplica um estado de acesso restrito, preservando os dados para reativação conforme política definida.
+4. Antes do fim do teste, a plataforma avisa que o período está terminando; não solicita cartão e não inicia cobrança automática.
+5. Ao terminar o teste, a conta passa para o estado expirado/aguardando assinatura e apresenta a opção de contratar o plano por R$ 19,90/mês.
+6. O cliente escolhe iniciar a assinatura e conclui o pagamento por um checkout seguro. A assinatura só passa para ativa após confirmação válida do provedor.
+7. Se o cliente não contratar, não há cobrança. Os dados da barbearia ficam preservados conforme a política de retenção, e a conta pode ser reativada após contratação.
 
 ## Estados de assinatura
 
-- `trialing`: período gratuito em andamento.
-- `active`: assinatura paga e válida.
-- `past_due`: pagamento pendente/recusado, em período de tolerância se configurado.
-- `canceled`: cancelada; manter acesso até o fim do período pago, conforme retorno do gateway.
-- `expired`: teste encerrado sem conversão ou assinatura encerrada.
+- `trialing`: período gratuito de 7 dias em andamento, sem cartão cadastrado obrigatório.
+- `awaiting_payment`: teste encerrado; cliente ainda não contratou ou está no checkout. Não cobrar automaticamente.
+- `active`: assinatura paga e válida, após confirmação do provedor.
+- `past_due`: pagamento de uma assinatura já contratada pendente/recusado, conforme política de tolerância.
+- `canceled`: assinatura cancelada; manter acesso até o fim do período pago, conforme retorno do gateway.
+- `expired`: conta sem teste ativo e sem assinatura válida, se aplicável após política de retenção.
 
 ## Regras técnicas e de segurança
 
@@ -37,16 +39,17 @@
 
 ## Decisões ainda necessárias antes de ativar cobrança real
 
-1. Provedor de pagamento e métodos aceitos (cartão, Pix ou ambos).
-2. Se o cartão será solicitado no início do teste ou apenas ao final.
-3. Período de tolerância após falha de pagamento.
-4. Política de cancelamento, reembolso e comunicação ao cliente.
+1. Provedor de pagamento e métodos aceitos (Pix, cartão ou ambos).
+2. Período de tolerância após falha de pagamento de uma assinatura contratada.
+3. Política de cancelamento, reembolso e comunicação ao cliente.
 
 ## Critérios de aceite
 
 - Uma barbearia não consegue iniciar vários testes gratuitos usando a mesma conta/estabelecimento.
 - O teste dura exatamente 7 dias, calculados no servidor.
-- Não há cobrança antes do fim do teste, conforme a oferta apresentada no checkout.
+- Nenhum cartão é exigido para iniciar o teste.
+- Não há cobrança automática ao fim do teste; o cliente precisa escolher contratar e concluir o pagamento.
+- A assinatura só fica ativa após confirmação do pagamento pelo provedor.
 - O sistema só ativa a assinatura mediante confirmação do provedor.
 - Webhooks repetidos não duplicam cobranças nem alteram incorretamente o estado.
 - Uma barbearia não consegue consultar ou alterar os dados de outra.
