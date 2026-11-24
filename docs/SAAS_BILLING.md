@@ -55,7 +55,9 @@
 - **Cartão:** recorrência mensal automática somente após consentimento explícito e autorização do cliente.
 - **Pix:** oferecer pagamento via QR Code/link para a contratação. A renovação por Pix deverá ser definida conforme a modalidade efetivamente suportada e habilitada na conta/API; não presumir que um Pix avulso seja recorrente automaticamente.
 - Confirmar as tarifas efetivas da conta e da modalidade de assinatura no painel/contrato do Mercado Pago antes de publicar o preço comercial. As tarifas públicas de checkout podem variar por prazo e modalidade e não devem ser tratadas como tarifa garantida para assinaturas.
-- Implementar notificações/webhooks, validação de status consultando a API, idempotência, tratamento de pagamentos pendentes/recusados e ambiente de teste antes de produção.
+- **Preparado no repositório:** adaptador server-side inicial em `backend/mercadopago.js`, com criação de checkout hospedado e consulta de assinatura. Ver `backend/README.md`.
+- **Ainda não ativo:** rota autenticada, persistência de tenant/assinatura, validação criptográfica de Webhooks, sincronização idempotente, cancelamentos e testes ponta a ponta.
+- A API de Assinaturas usa `POST /preapproval` e devolve `init_point`; a confirmação deve ser feita por Webhook e consulta à API, nunca apenas pela URL de retorno.
 
 Referências oficiais:
 - [API de Assinaturas](https://www.mercadopago.com.br/developers/pt/reference/online-payments/subscriptions/overview)
