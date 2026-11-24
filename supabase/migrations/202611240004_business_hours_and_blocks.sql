@@ -60,8 +60,8 @@ create policy "schedule_blocks_members_all" on public.barbershop_schedule_blocks
       professional_user_id is null
       or exists (
         select 1 from public.barbershop_members m
-        where m.barbershop_id = barbershop_id
-          and m.user_id = professional_user_id
+        where m.barbershop_id = barbershop_schedule_blocks.barbershop_id
+          and m.user_id = barbershop_schedule_blocks.professional_user_id
           and m.role in ('owner','admin','barber')
       )
     )
