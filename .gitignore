@@ -1,0 +1,11 @@
+# Local Supabase browser configuration (contains public project settings)
+supabase-config.js
+
+# Local environment secrets
+.env
+.env.*
+!.env.example
+
+# Dependencies and build output
+node_modules/
+dist/
