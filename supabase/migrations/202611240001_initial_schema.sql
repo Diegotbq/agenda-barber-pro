@@ -200,3 +200,36 @@ grant select, insert, update, delete on public.services to authenticated;
 grant select, insert, update, delete on public.clients to authenticated;
 grant select, insert, update, delete on public.appointments to authenticated;
 grant select on public.billing_subscriptions to authenticated;
+
+
+-- Atomic onboarding: every newly created barbershop gets its owner membership
+-- and its seven-day trial in the same transaction.
+create or replace function public.initialize_barbershop()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+begin
+  insert into public.barbershop_members (barbershop_id, user_id, role)
+  values (new.id, new.owner_user_id, 'owner')
+  on conflict (barbershop_id, user_id) do nothing;
+
+  insert into public.billing_subscriptions (
+    barbershop_id, status, trial_started_at, trial_ends_at
+  )
+  values (
+    new.id, 'trialing', now(), now() + interval '7 days'
+  )
+  on conflict (barbershop_id) do nothing;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists initialize_barbershop_after_insert on public.barbershops;
+create trigger initialize_barbershop_after_insert
+  after insert on public.barbershops
+  for each row execute function public.initialize_barbershop();
+
+revoke all on function public.initialize_barbershop() from public;
