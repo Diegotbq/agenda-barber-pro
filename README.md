@@ -35,3 +35,12 @@ Abra `index.html` no navegador ou publique a raiz do repositório em um host est
 - Provedor escolhido: Mercado Pago. O adaptador server-side inicial está em `backend/mercadopago.js`; veja `backend/README.md`.
 - O schema inicial multi-tenant do Supabase está versionado em `supabase/`; ainda falta criar/configurar o projeto remoto e validar a migration.
 - A cobrança real ainda não está ativa: faltam backend hospedado/autenticado, webhook validado e testes ponta a ponta.
+
+
+## Supabase Auth (interface groundwork)
+- Copy `supabase-config.example.js` to `supabase-config.js` and fill in the Supabase project URL and anon/publishable key.
+- Apply both SQL migrations in `supabase/migrations/` in numerical order.
+- The auth screen supports email/password signup, login, password reset and first-barbershop onboarding via the protected `create_my_barbershop` RPC.
+- Configure email confirmation and redirect URLs in Supabase Auth.
+- `supabase-config.js` is intentionally gitignored; never put a service-role key in the browser.
+- After authentication, the current dashboard still uses local demo data. Appointments, clients and services have not yet been connected to the tenant tables.
