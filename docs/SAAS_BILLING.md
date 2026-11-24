@@ -43,6 +43,26 @@
 - Registrar eventos de assinatura e cobranças para auditoria.
 - Não bloquear nem apagar os dados do estabelecimento por falha de pagamento; aplicar política de acesso clara e permitir reativação.
 
+
+
+## Provedor escolhido: Mercado Pago
+
+- Provedor definido para a primeira integração: **Mercado Pago**.
+- Usar a API oficial de Assinaturas para o fluxo recorrente e Checkout Transparente/Orders API quando necessário para pagamentos avulsos via Pix.
+- A conta do Mercado Pago e a aplicação de integração deverão ser configuradas pelo responsável pelo produto; credenciais privadas ficam somente no backend/gerenciador de segredos.
+- O período gratuito de 7 dias será controlado pelo Agenda Pro no backend. O cadastro inicial continua sem cartão e sem criação de cobrança.
+- Ao terminar o teste, o cliente escolhe contratar e então segue para o fluxo de pagamento do Mercado Pago. A ativação depende de confirmação recebida e validada no backend.
+- **Cartão:** recorrência mensal automática somente após consentimento explícito e autorização do cliente.
+- **Pix:** oferecer pagamento via QR Code/link para a contratação. A renovação por Pix deverá ser definida conforme a modalidade efetivamente suportada e habilitada na conta/API; não presumir que um Pix avulso seja recorrente automaticamente.
+- Confirmar as tarifas efetivas da conta e da modalidade de assinatura no painel/contrato do Mercado Pago antes de publicar o preço comercial. As tarifas públicas de checkout podem variar por prazo e modalidade e não devem ser tratadas como tarifa garantida para assinaturas.
+- Implementar notificações/webhooks, validação de status consultando a API, idempotência, tratamento de pagamentos pendentes/recusados e ambiente de teste antes de produção.
+
+Referências oficiais:
+- [API de Assinaturas](https://www.mercadopago.com.br/developers/pt/reference/online-payments/subscriptions/overview)
+- [Visão geral de Assinaturas](https://www.mercadopago.com.br/developers/pt/docs/subscriptions/overview)
+- [Checkout Transparente / Orders API](https://www.mercadopago.com.br/developers/pt/reference/online-payments/checkout-api/overview)
+- [Integração de Pix](https://www.mercadopago.com.br/developers/pt/docs/checkout-api-orders/payment-integration/websites/pix)
+
 ## Decisões ainda necessárias antes de ativar cobrança real
 
 1. Provedor de pagamento que aceite Pix e cartão e atenda ao fluxo de assinatura desejado.
