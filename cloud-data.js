@@ -4,6 +4,9 @@
   let cloud = null;
   let shopId = null;
   let userId = null;
+  let team = [];
+  window.agendaProTeam = team;
+  window.agendaProTeamRole = null;
   const statusToDb = { 'Confirmado':'confirmed', 'Pendente':'pending', 'Concluído':'completed', 'Cancelado':'cancelled' };
   const statusFromDb = { confirmed:'Confirmado', pending:'Pendente', completed:'Concluído', cancelled:'Cancelado', no_show:'Não compareceu' };
   const localDateTime = value => {
@@ -73,7 +76,7 @@
         const {data:overlap,error:checkError}=await cloud.from('appointments').select('id').eq('barbershop_id',shopId).eq('professional_user_id',userId).lt('starts_at',endsAt).gt('ends_at',startsAt).not('status','in','(cancelled)');
         if(checkError) throw checkError;
         if(overlap?.length) throw new Error('Você já possui um atendimento nesse intervalo.');
-        const {error}=await cloud.from('appointments').insert({barbershop_id:shopId,client_id:client.id,service_id:service.id,professional_user_id:userId,starts_at:startsAt,ends_at:endsAt,status:'confirmed',price_cents:Math.round(service.price*100),created_by:userId});
+        const {error}=await cloud.from('appointments').insert({barbershop_id:shopId,client_id:client.id,service_id:service.id,professional_user_id:professionalUserId,starts_at:startsAt,ends_at:endsAt,status:'confirmed',price_cents:Math.round(service.price*100),created_by:userId});
         if(error) throw error;
         showToast('Agendamento salvo na nuvem!');
       }
