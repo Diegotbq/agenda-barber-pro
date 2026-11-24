@@ -43,4 +43,11 @@ Abra `index.html` no navegador ou publique a raiz do repositório em um host est
 - The auth screen supports email/password signup, login, password reset and first-barbershop onboarding via the protected `create_my_barbershop` RPC.
 - Configure email confirmation and redirect URLs in Supabase Auth.
 - `supabase-config.js` is intentionally gitignored; never put a service-role key in the browser.
-- After authentication, the current dashboard still uses local demo data. Appointments, clients and services have not yet been connected to the tenant tables.
+- After authentication, `cloud-data.js` loads services, clients and appointments from the current barbershop tenant and persists new records/status changes through Supabase. The integration is implemented but still requires live-project validation (RLS, relationship embedding, auth redirects, and concurrent booking conflicts).
+
+
+## Supabase data integration
+- `cloud-data.js` loads the authenticated barbershop's services, clients and appointments under the database RLS policies.
+- New clients, services and appointments are written to Supabase; appointment status changes are persisted there as well.
+- Appointment creation assigns the signed-in account as the professional and checks for overlapping appointments before insert. This client-side check is a convenience, not a concurrency-safe booking lock; enforce overlap prevention server-side/database-side before production.
+- The browser integration has not yet been validated against a live Supabase project. Keep demo mode until the migrations, Auth URLs and public project config are configured and tested.
