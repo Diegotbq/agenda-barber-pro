@@ -4,6 +4,7 @@
     config.anonKey && !String(config.anonKey).includes('YOUR_');
   const shell = document.querySelector('.app-shell');
   if (!shell) return;
+  shell.classList.add('auth-locked');
 
   const panel = document.createElement('section');
   panel.id = 'authGate';
