@@ -11,7 +11,7 @@
     return { date: iso(d), time: d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',hour12:false}) };
   };
   const toIso = (date,time) => new Date(date+'T'+time+':00').toISOString();
-  const report = error => showToast(error?.message || 'Não foi possível salvar. Tente novamente.');
+  const report = error => showToast(error?.code === '23P01' ? 'Este profissional já possui um atendimento nesse intervalo.' : (error?.message || 'Não foi possível salvar. Tente novamente.'));
   async function loadCloudData() {
     const [servicesRes,clientsRes,appointmentsRes] = await Promise.all([
       cloud.from('services').select('id,name,description,duration_minutes,price_cents,active').eq('barbershop_id',shopId).eq('active',true).order('created_at'),
