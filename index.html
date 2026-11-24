@@ -26,6 +26,7 @@
         <button class="nav-item" data-view="agenda"><span class="nav-icon">▣</span> Agenda <span class="nav-count" id="navTodayCount">0</span></button>
         <button class="nav-item" data-view="clients"><span class="nav-icon">♙</span> Clientes</button>
         <button class="nav-item" data-view="services"><span class="nav-icon">✂</span> Serviços</button>
+        <button class="nav-item" data-view="settings"><span class="nav-icon">⚙</span> Configurações</button>
       </nav>
       <div class="sidebar-bottom">
         <div class="help-card"><span class="help-icon">✦</span><strong>Precisa de ajuda?</strong><p>Veja dicas para aproveitar melhor sua agenda.</p><a href="mailto:suporte@agendapro.app">Falar com suporte ↗</a></div>
@@ -68,6 +69,11 @@
         <div class="page-heading"><div><div class="eyebrow">SEU NEGÓCIO</div><h1>Serviços</h1><p class="muted">Defina o que sua barbearia oferece.</p></div><button class="button button-primary" data-action="new-service">＋ Novo serviço</button></div>
         <div class="service-grid" id="servicesGrid"></div>
       </section>
+
+      <section class="view" id="view-settings">
+        <div class="page-heading"><div><div class="eyebrow">CONFIGURAÇÃO DO NEGÓCIO</div><h1>Horários de funcionamento</h1><p class="muted">Defina quando sua barbearia recebe agendamentos.</p></div><button class="button button-primary" id="saveBusinessHours">Salvar horários</button></div>
+        <div class="panel"><div class="panel-heading"><div><h2>Funcionamento semanal</h2><p>Configure abertura, fechamento e dias de folga.</p></div></div><div class="business-hours-list" id="businessHoursList"><div class="empty-state">Carregando horários…</div></div><p class="small-muted">Os horários são salvos no fuso horário configurado para sua barbearia.</p></div>
+      </section>
       <footer class="footer"><span>© <span id="year"></span> Agenda Pro</span><span>Feito para quem cuida de cada detalhe. <b>✦</b></span></footer>
     </main>
   </div>
@@ -79,5 +85,6 @@
   <script src="auth.js"></script>
   <script src="app.js"></script>
   <script src="cloud-data.js"></script>
+  <script src="settings.js"></script>
 </body>
 </html>
