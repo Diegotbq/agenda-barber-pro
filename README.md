@@ -26,3 +26,10 @@ Abra `index.html` no navegador ou publique a raiz do repositório em um host est
 5. Adicionar testes e configurar deploy de produção.
 
 **Importante:** esta primeira entrega usa dados locais de demonstração. Os dados não são compartilhados entre dispositivos e ainda não representam uma agenda multiusuário em produção.
+
+
+## Modelo comercial SaaS
+- Plano único: **R$ 19,90/mês**.
+- Teste grátis: **7 dias por barbearia**.
+- A especificação da jornada de assinatura, estados, segurança e critérios de aceite está em [docs/SAAS_BILLING.md](docs/SAAS_BILLING.md).
+- A cobrança real ainda depende da escolha e configuração do provedor de pagamento; a versão de demonstração não cobra clientes.
