@@ -25,9 +25,10 @@
     if (failure) { report(failure); return; }
     data.services = (servicesRes.data||[]).map(s=>({id:s.id,name:s.name,description:s.description||'',duration:s.duration_minutes,price:s.price_cents/100,symbol:'✂'}));
     data.clients = (clientsRes.data||[]).map(c=>({id:c.id,name:c.full_name,phone:c.phone||'',created:iso(c.created_at)}));
+    const memberNames = Object.fromEntries(team.map(member=>[member.user_id,member.full_name]));
     data.appointments = (appointmentsRes.data||[]).map(a=>{
       const dt=localDateTime(a.starts_at);
-      return {id:a.id,client:a.clients?.full_name||'Cliente',phone:a.clients?.phone||'',service:a.services?.name||'Serviço',professional:'Equipe',date:dt.date,time:dt.time,status:statusFromDb[a.status]||a.status,price:a.price_cents/100,clientId:a.client_id,serviceId:a.service_id};
+      return {id:a.id,client:a.clients?.full_name||'Cliente',phone:a.clients?.phone||'',service:a.services?.name||'Serviço',professional:memberNames[a.professional_user_id]||'Profissional',professionalId:a.professional_user_id,date:dt.date,time:dt.time,status:statusFromDb[a.status]||a.status,price:a.price_cents/100,clientId:a.client_id,serviceId:a.service_id};
     });
     persist(); render();
     const notice=document.getElementById('dataModeNotice');
@@ -41,6 +42,11 @@
     if(error||!shops?.length){report(error||new Error('Nenhuma barbearia vinculada a esta conta.'));return false;}
     shopId=shops[0].id;
     const switcher=$('.shop-switcher strong'); if(switcher) switcher.textContent=shops[0].name;
+    const {data:members,error:teamError}=await cloud.rpc('get_barbershop_team',{target_barbershop_id:shopId});
+    if(teamError) { report(teamError); return false; }
+    team=members||[];
+    window.agendaProTeam=team;
+    window.agendaProTeamRole=team.find(member=>member.user_id===userId)?.role||null;
     await loadCloudData();
     return true;
   }
@@ -72,8 +78,12 @@
         }
         const service=data.services.find(s=>s.name===f.service);
         if(!service) throw new Error('Selecione um serviço válido.');
+        const professionalUserId=f.professional;
+        const professional=team.find(member=>member.user_id===professionalUserId&&['owner','admin','barber'].includes(member.role));
+        if(!professional) throw new Error('Selecione um profissional válido da equipe.');
+        if(window.agendaProTeamRole==='barber'&&professionalUserId!==userId) throw new Error('Você só pode agendar na sua própria agenda.');
         const startsAt=toIso(f.date,f.time), endsAt=new Date(new Date(startsAt).getTime()+service.duration*60000).toISOString();
-        const {data:overlap,error:checkError}=await cloud.from('appointments').select('id').eq('barbershop_id',shopId).eq('professional_user_id',userId).lt('starts_at',endsAt).gt('ends_at',startsAt).not('status','in','(cancelled)');
+        const {data:overlap,error:checkError}=await cloud.from('appointments').select('id').eq('barbershop_id',shopId).eq('professional_user_id',professionalUserId).lt('starts_at',endsAt).gt('ends_at',startsAt).not('status','in','(cancelled)');
         if(checkError) throw checkError;
         if(overlap?.length) throw new Error('Você já possui um atendimento nesse intervalo.');
         const {error}=await cloud.from('appointments').insert({barbershop_id:shopId,client_id:client.id,service_id:service.id,professional_user_id:professionalUserId,starts_at:startsAt,ends_at:endsAt,status:'confirmed',price_cents:Math.round(service.price*100),created_by:userId});
