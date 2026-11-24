@@ -19,6 +19,17 @@ This migration establishes the first multi-tenant database layer for Agenda Pro.
 - Billing writes must use a trusted backend with the Supabase service-role key, stored only as a server secret.
 - Appointment foreign keys include `barbershop_id`, preventing a client or service from another barbershop being attached to an appointment.
 
+## Team invitations (Edge Function)
+
+The team screen can send invitations through the `invite-team-member` Edge Function. Deploy it only after creating a Supabase project and configuring the function secrets:
+
+```bash
+supabase secrets set SUPABASE_URL=https://YOUR_PROJECT.supabase.co SUPABASE_ANON_KEY=YOUR_ANON_KEY SUPABASE_SERVICE_ROLE_KEY=YOUR_SERVICE_ROLE_KEY
+supabase functions deploy invite-team-member
+```
+
+Keep the service-role key only in Supabase Function secrets. The function verifies the caller's session and owner/admin membership, restricts role assignment, sends the Supabase Auth invitation email, and links the invited account to the shop. Configure the Supabase Auth email templates and SMTP provider before sending real invitations. Test owner, admin, unauthorized member, duplicate email, and invitation acceptance in a staging project.
+
 ## Apply
 
 1. Create a Supabase project.
