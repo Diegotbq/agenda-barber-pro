@@ -31,6 +31,7 @@ This migration establishes the first multi-tenant database layer for Agenda Pro.
 - Safe onboarding RPC/transaction that creates a barbershop, owner membership, and initial seven-day trial atomically.
 - Invitation flow for additional staff and role-specific policies.
 - Apply `migrations/202611240003_appointment_safety.sql` to enforce server-side appointment overlap prevention and validate that assigned professionals belong to the same barbershop.
+- Apply `migrations/202611240004_business_hours_and_blocks.sql` to add weekly opening hours and closure blocks for breaks, holidays, and time off.
 - Payment webhook signature validation and provider resource lookup.
 - A backend-only state transition function for subscription lifecycle.
 - Backups, retention, audit log, rate limits, and production security review.
