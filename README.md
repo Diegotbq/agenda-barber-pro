@@ -32,4 +32,5 @@ Abra `index.html` no navegador ou publique a raiz do repositório em um host est
 - Plano único: **R$ 19,90/mês**.
 - Teste grátis: **7 dias por barbearia**.
 - A especificação da jornada de assinatura, estados, segurança e critérios de aceite está em [docs/SAAS_BILLING.md](docs/SAAS_BILLING.md).
-- A cobrança real ainda depende da escolha e configuração do provedor de pagamento; a versão de demonstração não cobra clientes.
+- Provedor escolhido: Mercado Pago. O adaptador server-side inicial está em `backend/mercadopago.js`; veja `backend/README.md`.
+- A cobrança real ainda não está ativa: faltam backend hospedado/autenticado, banco multi-tenant, webhook validado e testes ponta a ponta.
